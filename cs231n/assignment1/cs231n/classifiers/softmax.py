@@ -30,7 +30,23 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_train = X.shape[0]
+  num_classes = W.shape[1]
+  for i in range(num_train):
+    scores = X[i].dot(W)
+    scores -= np.max(scores) # for numerical stability
+    p = np.exp(scores) / np.sum(np.exp(scores)) # probabilities
+    loss += -np.log(p[y[i]]) # cross entropy loss (negative log probability of the correct class)
+
+    p[y[i]] -= 1
+    for j in range(num_classes):
+      dW[:, j] += X[i,:] * p[j]
+
+  loss /= num_train
+  loss += 0.5 * reg * np.sum(W * W)
+
+  dW /= num_train
+  dW += reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -54,7 +70,18 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_train = X.shape[0]
+  scores = X.dot(W)
+  scores -= np.max(scores, axis=1, keepdims=True)
+  p = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+  p_correct_class = p[range(num_train), y]
+
+  loss = np.sum(-np.log(p_correct_class)) / num_train
+  loss += 0.5 * reg * np.sum(W*W)
+
+  p[range(num_train), y] -= 1
+  dW = X.T.dot(p)/num_train
+  dW += reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
